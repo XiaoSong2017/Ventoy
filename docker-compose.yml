@@ -6,3 +6,4 @@ services:
     privileged: true
     volumes:
      - .:/ventoy
+     - /root/下载:/root/下载

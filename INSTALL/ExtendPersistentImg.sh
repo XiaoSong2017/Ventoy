@@ -92,6 +92,13 @@ if [ "$magic" = "584653" ]; then
         echo 'xfs_growfs not found, please install xfsprogs first'
         exit 1
     fi
+elif [ "$magic" = "627472" ]; then
+    if which btrfs >/dev/null 2>&1; then
+        cmd=btrfs
+    else
+        echo 'btrfs not found, please install btrfs-progs first'
+        exit 1
+    fi
 else
     if which resize2fs >/dev/null 2>&1; then
         cmd=resize2fs
@@ -119,6 +126,17 @@ if [ "$cmd" = "resize2fs" ]; then
     e2fsck -f $freeloop
     resize2fs $freeloop ${total}M
     ret=$?
+elif [ "$cmd" = "btrfs" ]; then
+    echo "$mode btrfs filesystem by btrfs filesystem resize ..."
+    tmpdir=$(mktemp -d)
+    mount $freeloop $tmpdir
+    if [ "$mode" = "Extend" ]; then
+        btrfs filesystem resize max $tmpdir
+    else
+        btrfs filesystem resize ${total}M $tmpdir
+    fi
+    ret=$?
+    umount $tmpdir && rm -rf $tmpdir
 else
     echo "$mode xfs filesystem by xfs_growfs ..."
     tmpdir=$(mktemp -d)

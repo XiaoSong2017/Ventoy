@@ -3,8 +3,8 @@
 date +"%Y/%m/%d %H:%M:%S"
 echo downloading EXT files ...
 
-wget -q -P ./EXT/ https://github.com/ventoy/KioskFiles/releases/download/v1.0/Porteus-Kiosk-5.2.0-x86_64.iso
-wget -q -P ./EXT/ https://github.com/ventoy/KioskFiles/releases/download/v1.0/06-fonts.xzm
+cp /root/下载/Porteus-Kiosk-5.2.0-x86_64.iso ./EXT/
+cp /root/下载/06-fonts.xzm ./EXT/
 
 [ -d ./__tmp__ ] && rm -rf ./__tmp__
 mkdir __tmp__

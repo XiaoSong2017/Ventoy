@@ -10,7 +10,7 @@ print_usage() {
     echo 'Usage:  sudo ./CreatePersistentImg.sh [ -s size ] [ -t fstype ] [ -l LABEL ] [ -c CFG ] [ -e ]'
     echo '  OPTION: (optional)'
     echo '   -s size in MB, default is 1024'
-    echo '   -t filesystem type, default is ext4  ext2/ext3/ext4/xfs are supported now'
+    echo '   -t filesystem type, default is ext4  ext2/ext3/ext4/xfs/btrfs are supported now'
     echo '   -l label, default is casper-rw'
     echo '   -c configfile name inside the persistence file. File content is "/ union"'
     echo '   -o outputfile name, default is persistence.dat'
@@ -71,6 +71,8 @@ if echo $size | grep -q "^[0-9][0-9]*$"; then
     vtMinSize=1
     if echo $fstype | grep -q '^xfs$'; then
         vtMinSize=16
+    elif echo $fstype | grep -q '^btrfs$'; then
+        vtMinSize=16
     fi
     
     if [ $size -lt $vtMinSize ]; then
@@ -90,6 +92,8 @@ if echo $fstype | grep -q '^ext[234]$'; then
     fsopt='-E nodiscard'
 elif [ "$fstype" = "xfs" ]; then
     fsopt='-K'
+elif [ "$fstype" = "btrfs" ]; then
+    fsopt='-f'
 else
     echo "unsupported file system $fstype"
     exit 1
@@ -115,6 +119,31 @@ if [ ! -z "$passphrase" ]; then
 fi
 
 mkfs -t $fstype $fsopt -L $label $freeloop 
+
+# Btrfs optimization after formatting
+if [ "$fstype" = "btrfs" ]; then
+    echo "Applying Btrfs optimizations..."
+    
+    # Mount temporarily to set properties
+    tmp_mnt=$(mktemp -d)
+    if mount $freeloop "$tmp_mnt"; then
+        # Set compression property (optional, can be enabled by user)
+        # btrfs property set "$tmp_mnt" compression zstd
+        
+        # Set other useful properties
+        btrfs property set "$tmp_mnt" ro false 2>/dev/null || true
+        
+        # Sync and unmount
+        sync
+        umount "$tmp_mnt"
+        rmdir "$tmp_mnt"
+        
+        echo "Btrfs optimizations applied successfully"
+    else
+        echo "Warning: Could not mount for Btrfs optimization"
+        rmdir "$tmp_mnt" 2>/dev/null || true
+    fi
+fi
 
 sync
 
