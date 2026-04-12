@@ -179,6 +179,8 @@ ventoy_get_os_type() {
             echo 'deepin'; return
         elif $GREP -qi 'aerynos' /etc/os-release; then
             echo 'rhel7'; return
+        elif $GREP -qi 'ID_LIKE=debian' /etc/os-release; then
+            echo 'debian'; return
         fi
     fi
     
@@ -314,8 +316,8 @@ ventoy_get_os_type() {
     fi
     
     
-    if [ -e /init ]; then
-        if $GREP -q -m1 'T2 SDE' /init; then
+    if [ -e /etc/initrd-release ]; then
+        if $GREP -q -m1 't2sde' /etc/initrd-release; then
             echo 't2'; return
         fi
     fi
