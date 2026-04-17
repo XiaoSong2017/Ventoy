@@ -163,15 +163,16 @@ ventoy_get_vblade_bin() {
 }
 
 ventoy_find_bin_path() {        
+    #must use built-in dmsetup, so first try ventoy path. Otherwise ubuntu installer unhappy. #3567
+    if $BUSYBOX_PATH/which "$1" > /dev/null; then
+        $BUSYBOX_PATH/which "$1"; return
+    fi
     for vt_path in '/bin' '/sbin' '/usr/bin' '/usr/sbin' '/usr/local/bin' '/usr/local/sbin' '/root/bin'; do
         if [ -e "$vt_path/$1" ]; then
             echo "$vt_path/$1"; return
         fi
     done
-    if $BUSYBOX_PATH/which "$1" > /dev/null; then
-        $BUSYBOX_PATH/which "$1"; return
-    fi
-    
+
     echo ""
 }
 
@@ -269,8 +270,8 @@ create_ventoy_device_mapper() {
     
     RAWDISKNAME=$($HEAD -n1 $VTOY_PATH/ventoy_raw_table | $AWK '{print $4}')    
     echo "$VT_DM_BIN create  ${RAWDISKNAME#/dev/}  $VTOY_PATH/ventoy_raw_table"  > /ventoy/ventoy_iso_part_dm_cmd    
-    echo "$VT_DM_BIN mknodes ${RAWDISKNAME#/dev/}"                              >> /ventoy/ventoy_iso_part_dm_cmd    
-    echo "$VT_DM_BIN ls"                                                        >> /ventoy/ventoy_iso_part_dm_cmd    
+    #echo "$VT_DM_BIN mknodes ${RAWDISKNAME#/dev/}"                              >> /ventoy/ventoy_iso_part_dm_cmd    
+    #echo "$VT_DM_BIN ls"                                                        >> /ventoy/ventoy_iso_part_dm_cmd    
 }
 
 create_persistent_device_mapper() {
