@@ -896,6 +896,36 @@ static grub_err_t ventoy_cmd_strstr(grub_extcmd_context_t ctxt, int argc, char *
     return (grub_strstr(args[0], args[1])) ? 0 : 1;
 }
 
+static grub_err_t ventoy_cmd_istrstr(grub_extcmd_context_t ctxt, int argc, char **args)
+{
+    grub_err_t ret = 1;
+    char *s1 = NULL;
+    char *s2 = NULL;
+
+    (void)ctxt;
+
+    if (argc != 2)
+    {
+        return 1;
+    }
+
+    s1 = grub_strdup(args[0]);
+    s2 = grub_strdup(args[1]);
+    if (s1 == NULL || s2 == NULL)
+    {
+        goto end;
+    }
+
+    ventoy_str_toupper(s1);
+    ventoy_str_toupper(s2);
+    ret = (grub_strstr(s1, s2)) ? 0 : 1;
+
+end:
+    grub_check_free(s1);
+    grub_check_free(s2);
+    return ret;
+}
+
 static grub_err_t ventoy_cmd_strbegin(grub_extcmd_context_t ctxt, int argc, char **args)
 {
     char *c0, *c1;
@@ -6413,6 +6443,19 @@ static grub_err_t ventoy_cmd_load_menu_lang(grub_extcmd_context_t ctxt, int argc
     VENTOY_CMD_RETURN(0);
 }
 
+static grub_err_t ventoy_cmd_update_sb_policy(grub_extcmd_context_t ctxt, int argc, char **args)
+{
+    (void)ctxt;
+    (void)argc;
+    (void)args;
+
+#ifdef GRUB_MACHINE_EFI
+    ventoy_set_sb_policy();
+#endif
+
+    VENTOY_CMD_RETURN(0);
+}
+
 static grub_err_t ventoy_cmd_sb_info(grub_extcmd_context_t ctxt, int argc, char **args)
 {
     (void)ctxt;
@@ -6931,6 +6974,7 @@ static cmd_para ventoy_cmds[] =
     { "vt_incr",  ventoy_cmd_incr,  0, NULL, "{Var} {INT}",   "Increase integer variable",    NULL },
     { "vt_mod",  ventoy_cmd_mod,  0, NULL, "{Int} {Int} {Var}",   "mod integer variable",    NULL },
     { "vt_strstr",  ventoy_cmd_strstr,  0, NULL, "",   "",    NULL },
+    { "vt_istrstr",  ventoy_cmd_istrstr,  0, NULL, "",   "",    NULL },
     { "vt_str_begin",  ventoy_cmd_strbegin,  0, NULL, "",   "",    NULL },
     { "vt_str_casebegin",  ventoy_cmd_strcasebegin,  0, NULL, "",   "",    NULL },
     { "vt_debug", ventoy_cmd_debug, 0, NULL, "{on|off}",   "turn debug on/off",    NULL },
@@ -7095,6 +7139,7 @@ static cmd_para ventoy_cmds[] =
     { "vt_linux_initrd", ventoy_cmd_linux_initrd, 0, NULL, "", "", NULL },
 
     { "vt_sbinfo", ventoy_cmd_sb_info, 0, NULL, "", "", NULL },
+    { "vt_update_sb_policy", ventoy_cmd_update_sb_policy, 0, NULL, "", "", NULL },
 
 };
 
